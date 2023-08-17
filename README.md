@@ -16,12 +16,12 @@
 		  CountDefault: 0
 		  Sub:
 		  - Key: Email
-		 	Name: Sent Alert To
-		 	Input:
-		 	  Type: Text
-		 	  Size: 50
-		 	  MaxLength: 100
-		 	  Required: 1 
+		    Name: Sent Alert To
+		    Input:
+			  Type: Text
+			  Size: 50
+			  MaxLength: 100
+			  Required: 1 
 		
 2. These field should be available at your new or edit CI screen.
 
