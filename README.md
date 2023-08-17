@@ -33,7 +33,7 @@ To use Email notification only, skip no 1, 2 and 3.
 	
 5) Update CMDB class definition with additional field via Admin > Config Items > Class.
 
-		- Key: AlertDateTime
+		```- Key: AlertDateTime
 		  Name: Alert Date Time
 		  Searchable: 1
 		  Input:
@@ -56,7 +56,7 @@ To use Email notification only, skip no 1, 2 and 3.
 		      Type: Text
 		      Size: 50
 		      MaxLength: 100
-		      Required: 1
+		      Required: 1```
 
 		
 6. These field should be available at your new or edit CI screen.  
