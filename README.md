@@ -18,10 +18,10 @@
 		  - Key: Email
 		    Name: Sent Alert To
 		    Input:
-			  Type: Text
-			  Size: 50
-			  MaxLength: 100
-			  Required: 1 
+		      Type: Text
+		      Size: 50
+		      MaxLength: 100
+		      Required: 1 
 		
 2. These field should be available at your new or edit CI screen.
 
