@@ -22,13 +22,14 @@ To use Email notification only, skip no 1, 2 and 3.
 	c) Save and finish
 
 
-4) .OPM will automaticall create New General Catalog class with its item name. Do check. 
+4) .OPM will automaticall create New General Catalog class with its item name. Do check.   
+	If not, manually create via Admin > General Catalogue > Add Catalogue Class. 
 
 			Catalog Class: ITSM::ConfigItem::AlertType
 			Item Name: Email
 			Item Name: Telegram
 			
-	If not, manually create via Admin > General Catalogue > Add Catalogue Class.  
+	 
 	
 	
 5) Update CMDB class definition with additional field via Admin > Config Items > Class.
