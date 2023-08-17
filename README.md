@@ -2,13 +2,16 @@
 - Send Config Item Notification Upon Reach Alert Date Time (Email / Telegram).
 - Based on Znuny 7.0.x
 
+
 To use Email notification only, skip no 1, 2 and 3.
  
-1. A telegram bot must be created by chat with @FatherBot and obtain the token via Telegram.
+1) A telegram bot must be created by chat with @FatherBot and obtain the token via Telegram.
 
-2. Create the 'CI Telegram Notification' via Import Ready2Adopt web service at Admin > Web Services.
 
-3. Update the telegram bot token at the created webservice.
+2) Create the 'CI Telegram Notification' via Import Ready2Adopt web service at Admin > Web Services.
+
+
+3) Update the telegram bot token at the created webservice.
 
 	a) Znuny as requester > Network transport (HTTP::REST) > Configure
 
@@ -18,15 +21,17 @@ To use Email notification only, skip no 1, 2 and 3.
 	
 	c) Save and finish
 
-4. .OPM will automaticall create New General Catalog class with its item name. Do check. 
+
+4) .OPM will automaticall create New General Catalog class with its item name. Do check. 
 
 			Catalog Class: ITSM::ConfigItem::AlertType
 			Item Name: Email
 			Item Name: Telegram
 			
 	If not, manually create via Admin > General Catalogue > Add Catalogue Class.
-		
-5. Update CMDB class definition with additional field via Admin > Config Items > Class.
+	
+	
+5) Update CMDB class definition with additional field via Admin > Config Items > Class.
 
 		- Key: AlertDateTime
 		  Name: Alert Date Time
@@ -52,8 +57,9 @@ To use Email notification only, skip no 1, 2 and 3.
 		      Size: 50
 		      MaxLength: 100
 		      Required: 1
+
 		
-6. These field should be available at your new or edit CI screen.
+6. These field should be available at your new or edit CI screen.  
    Do fill in Alert Date Time and Alert Type (Email/Telegram) and the Receiver.
    
 		If Alert Type = Email, Alert Receiver must be email address (single value). 
