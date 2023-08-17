@@ -1,5 +1,5 @@
 # Znuny Config Item Notification
-- Send Config Item Email Notification Upon Alert Date Time.
+- Send Config Item Email Notification Upon Reach Alert Date Time.
 - Based on Znuny 7.0.x
 
 1. Update CMDB class definition with additional field via Admin > Config Items > Class.
