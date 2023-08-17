@@ -3,7 +3,7 @@
 - Based on Znuny 7.0.x
 
 
-To use Email notification only, skip no 1, 2 and 3.
+*To use Email notification only, skip no 1, 2 and 3.*
  
 1) A telegram bot must be created by chat with @FatherBot and obtain the token via Telegram.
 
@@ -19,7 +19,7 @@ To use Email notification only, skip no 1, 2 and 3.
 
 		e.g: https://api.telegram.org/botABCDEGH823742734984HJDFHhsdjghjjd
 	
-	c) Save and finish
+	c) Save and finish  
 
 
 4) .OPM will automaticall create New General Catalog class with its item name. Do check.   
