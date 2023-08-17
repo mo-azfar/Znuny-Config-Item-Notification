@@ -28,7 +28,7 @@ To use Email notification only, skip no 1, 2 and 3.
 			Item Name: Email
 			Item Name: Telegram
 			
-	If not, manually create via Admin > General Catalogue > Add Catalogue Class.
+	If not, manually create via Admin > General Catalogue > Add Catalogue Class.  
 	
 	
 5) Update CMDB class definition with additional field via Admin > Config Items > Class.
