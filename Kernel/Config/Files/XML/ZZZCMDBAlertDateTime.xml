@@ -6,10 +6,10 @@
         <Value>
             <Hash>
                 <Item Key="Module">Kernel::System::ITSMConfigItem::Event::CMDBAlertDateTime</Item>
-                <Item Key="Event">(ValueUpdate)</Item>
+                <Item Key="Event">(VersionCreate)</Item>
                 <Item Key="Transaction">0</Item>
-				<Item Key="AlertField">AlertDateTime</Item>
-				<Item Key="EmailField">Email</Item>
+				<Item Key="WebserviceName">CI Telegram Notification</Item>
+				<Item Key="Invoker">AlertDateTimeReached</Item>
             </Hash>
         </Value>
     </Setting>

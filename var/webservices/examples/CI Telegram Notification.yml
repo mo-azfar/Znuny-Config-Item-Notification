@@ -1,0 +1,49 @@
+---
+Debugger:
+  DebugThreshold: error
+  TestMode: '0'
+Description: ''
+FrameworkVersion: 7.0.9
+Provider:
+  Transport:
+    Type: ''
+RemoteSystem: ''
+Requester:
+  Invoker:
+    AlertDateTimeReached:
+      Description: ''
+      GetAllArticleAttachments: ~
+      MappingOutbound:
+        Config:
+          DataInclude: []
+          ForceArray: ''
+          KeepAttributes: ''
+          PostRegExFilter: ~
+          PostRegExValueCounter: ~
+          PreRegExFilter: ~
+          PreRegExValueCounter: ~
+          Template: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<xsl:transform
+            version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" xmlns:date=\"http://exslt.org/dates-and-times\"
+            extension-element-prefixes=\"date\">\r\n    <xsl:output method=\"xml\"
+            encoding=\"utf-8\" indent=\"yes\"/>\r\n    <xsl:template match=\"RootElement\">\r\n
+            \       <xsl:copy>\r\n          <chat_id><xsl:value-of select=\"//ConfigItem/XMLData/AlertDateTime/AlertReceiver/Content\"
+            /></chat_id>\r\n            <parse_mode>HTML</parse_mode>\r\n            <text>\r\nName:&#x20;<xsl:value-of
+            select=\"//ConfigItem/Name\" />\r\nAlert Time:&#x20;<xsl:value-of select=\"//ConfigItem/XMLData/AlertDateTime/Content\"
+            />\r\n\r\n&lt;a href=\"&lt;OTRS_CONFIG_HttpType&gt;://&lt;OTRS_CONFIG_FQDN&gt;/&lt;OTRS_CONFIG_ScriptAlias&gt;index.pl?Action=AgentITSMConfigItemZoom;ConfigItemID=<xsl:value-of
+            select=\"//ConfigItem/ConfigItemID\" />;\"&gt;VIEW&lt;/a&gt;\r\n          \t</text>\r\n
+            \       </xsl:copy>\r\n    </xsl:template>\r\n</xsl:transform>"
+        Type: XSLT
+      Type: ITSMConfigItem::Generic
+  Transport:
+    Config:
+      AdditionalHeaders: ~
+      ContentType: JSON
+      DefaultCommand: POST
+      Host: https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>
+      InvokerControllerMapping:
+        AlertDateTimeReached:
+          Command: POST
+          Controller: /sendMessage
+      SSLNoHostnameVerification: '0'
+      Timeout: '30'
+    Type: HTTP::REST

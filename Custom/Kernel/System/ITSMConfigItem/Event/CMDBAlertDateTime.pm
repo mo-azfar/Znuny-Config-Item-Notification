@@ -62,12 +62,17 @@ This method handles the event.
 sub Run {
     my ( $Self, %Param ) = @_;
 
-    # as DefinitionCreate does not belong to an item, we don't create
-    # a history entry
+    # as DefinitionCreate does not belong to an item, we don't execute on this
     if ( $Param{Event} && $Param{Event} eq 'DefinitionCreate' ) {
         return;
     }
 
+	local $Kernel::OM = Kernel::System::ObjectManager->new(
+        'Kernel::System::Log' => {
+            LogPrefix => 'CMDBAlertDateTime', 
+        },
+    );
+	
     NEEDED:
     for my $Needed (qw(Data Event UserID)) {
 
@@ -80,96 +85,193 @@ sub Run {
         return;
     }
 	
-	my @spl = split('%%', $Param{Data}->{Comment}); 
-	my $FieldName = $spl[0];
+	my $ConfigItemObject = $Kernel::OM->Get('Kernel::System::ITSMConfigItem');
 	
-	my $ExpectedField1 = "[1]{\'Version\'}[1]{\'$Param{Config}->{AlertField}\'}[1]";
-	my $ExpectedField2 = "[1]{\'Version\'}[1]{\'$Param{Config}->{AlertField}\'}[1]{\'$Param{Config}->{EmailField}\'}[1]";
+	my $VersionListRef = $ConfigItemObject->VersionList(
+		ConfigItemID => $Param{Data}->{ConfigItemID},
+	);
 	
-	#if config fieldname eq event field name
-	if ( $FieldName eq $ExpectedField1 || $FieldName eq $ExpectedField2 )
+	my @VersionList = @{$VersionListRef};
+	my $PreVersionID = $VersionList[-2];
+	my $LastVersionID = $Param{Data}->{Comment};
+	
+	my $PreVersion = $ConfigItemObject->VersionGet(
+		VersionID  => $PreVersionID,
+		XMLDataGet => 1, 
+	);
+	
+	my $LastVersion = $ConfigItemObject->VersionGet(
+		ConfigItemID => $Param{Data}->{ConfigItemID},
+		XMLDataGet   => 1,
+	);
+	
+	my $PV	 		 = $PreVersion->{XMLData}->[1]->{Version}->[1];
+	my $PreDateTime  = $PV->{AlertDateTime}->[1]->{Content};
+	my $PreType      = $PV->{AlertDateTime}->[1]->{AlertType}->[1]->{Content};
+	my $PreReceiver  = $PV->{AlertDateTime}->[1]->{AlertReceiver}->[1]->{Content};
+		
+	my $Number 		 = $LastVersion->{Number};
+	my $Name 		 = $LastVersion->{Name};
+	my $LV	 		 = $LastVersion->{XMLData}->[1]->{Version}->[1];
+	my $NewDateTime  = $LV->{AlertDateTime}->[1]->{Content};
+	my $NewType      = $LV->{AlertDateTime}->[1]->{AlertType}->[1]->{Content};
+	my $NewReceiver  = $LV->{AlertDateTime}->[1]->{AlertReceiver}->[1]->{Content};
+	
+	return if !$NewDateTime;
+
+	my $Event = 0;
+    if ( $PreDateTime ne $NewDateTime )
 	{
-		my $ConfigItemObject = $Kernel::OM->Get('Kernel::System::ITSMConfigItem');
-		my $SchedulerObject = $Kernel::OM->Get('Kernel::System::Scheduler');
-		
-		my $LastVersion = $ConfigItemObject->VersionGet(
-			ConfigItemID => $Param{Data}->{ConfigItemID},
-			XMLDataGet   => 1,
-		);
-		
-		my $Number 		 = $LastVersion->{Number};
-		my $Name 		 = $LastVersion->{Name};
-		my $Version 	 = $LastVersion->{XMLData}->[1]->{Version}->[1];		
-		my $NewDateTime  = $Version->{$Param{Config}->{AlertField}}->[1]->{Content};
-		my $AlertEmail 	 = $Version->{$Param{Config}->{AlertField}}->[1]->{$Param{Config}->{EmailField}}->[1]->{Content};
-		
-		my @FutureTask = $SchedulerObject->FutureTaskList(
-			Type => 'AsynchronousExecutor', 
-		);
-		
-		my $TaskName = "$Param{Config}->{AlertField} - ConfigItemID:$Param{Data}->{ConfigItemID}";
-		my $TaskID = 0;
-		TASK:
-		
-		foreach my $Task (@FutureTask)
-		{
-			if ( $Task->{Name} eq $TaskName )
-			{
-				$TaskID = $Task->{TaskID};
-				
-				#delete future task
-				my $Delete = $SchedulerObject->FutureTaskDelete(
-					TaskID => $TaskID,
-				);
-		
-				last TASK;
-			}
-		}
-		
-		#only create new task if datetime has a value in it
-		if ( $NewDateTime )
-		{
-			my $ConfigObject = $Kernel::OM->Get('Kernel::Config');
-			my $UserObject = $Kernel::OM->Get('Kernel::System::User');
-			
-			my $HttpType = $ConfigObject->Get('HttpType');
-			my $FQDN = $ConfigObject->Get('FQDN');
-			my $ScriptAlias = $ConfigObject->Get('ScriptAlias');
-			
-			my $ConfigItemURL = $HttpType.'://'.$FQDN.'/'.$ScriptAlias.'index.pl?Action=AgentITSMConfigItemZoom;ConfigItemID='.$Param{Data}->{ConfigItemID};
-				
-			#create new task
-			my $NewTask = $SchedulerObject->TaskAdd(
-				ExecutionTime            => $NewDateTime,
-				Type                     => 'AsynchronousExecutor',
-				Name                     => $TaskName,
-				Attempts                 =>  1,
-				MaximumParallelInstances =>  0,
-				Data                     => 
-				{
-					Object   => 'Kernel::System::Email',
-					Function => 'Send',
-					Params   => 
-							{
-								From => $ConfigObject->Get('NotificationSenderEmail'),
-								To    => $AlertEmail,
-								Subject  => "Alert: ConfigItem#$Number - $Name",
-								Charset      => "iso-8859-15",
-								MimeType      => "text/html",
-								Body          => "<b>ConfigItem#$Number has reach its alert time.
-								<br/><br/>Name: $Name<br/>Alert Time: $NewDateTime</b><br/><br/>$ConfigItemURL",
-							},
-				},
-			);
-		}
-		
+		$Event = 1;
 	}
+	
+	if ( $PreType ne $NewType )
+	{
+		$Event = 1;
+	}
+	
+	if ( $PreReceiver ne $NewReceiver )
+	{
+		$Event = 1;
+	}
+	
+	return if !$Event;
+	
+	my $SchedulerObject = $Kernel::OM->Get('Kernel::System::Scheduler');
+	
+	#check existing task
+	my @FutureTask = $SchedulerObject->FutureTaskList(
+		Type => 'AsynchronousExecutor', 
+	);
+	
+	my $TaskName = "AlertDateTime - ConfigItemID:$Param{Data}->{ConfigItemID}";
+	my $TaskID = 0;
+	TASK:
+	
+	foreach my $Task (@FutureTask)
+	{
+		if ( $Task->{Name} eq $TaskName )
+		{
+			$TaskID = $Task->{TaskID};
+			
+			#delete future task
+			my $Delete = $SchedulerObject->FutureTaskDelete(
+				TaskID => $TaskID,
+			);
+	
+			last TASK;
+		}
+	}
+	
+	my $GeneralCatalogObject = $Kernel::OM->Get('Kernel::System::GeneralCatalog');
+	
+	my $AlertTypeName = $GeneralCatalogObject->ItemGet(
+		ItemID => $NewType,
+	);
+
+	if ( $AlertTypeName->{Name} eq "Email" )
+	{
+		my $ConfigObject = $Kernel::OM->Get('Kernel::Config');
+		
+		my $HttpType = $ConfigObject->Get('HttpType');
+		my $FQDN = $ConfigObject->Get('FQDN');
+		my $ScriptAlias = $ConfigObject->Get('ScriptAlias');
+	
+		my $ConfigItemURL = $HttpType.'://'.$FQDN.'/'.$ScriptAlias.'index.pl?Action=AgentITSMConfigItemZoom;ConfigItemID='.$Param{Data}->{ConfigItemID};
+		
+		#validate email
+		my $regex = $NewReceiver =~ /^[a-z0-9._]+\@[a-z0-9.-]+$/;
+
+		if ( !$regex ) 
+		{
+			$Kernel::OM->Get('Kernel::System::Log')->Log(
+				Priority => 'error',
+				Message  => "ConfigItem#$Number: AlertType ($AlertTypeName->{Name}) value not correct: $NewReceiver!",
+			);
+			return;
+		} 
+	
+		#create new task
+		my $NewTask = $SchedulerObject->TaskAdd(
+			ExecutionTime            => $NewDateTime,
+			Type                     => 'AsynchronousExecutor',
+			Name                     => $TaskName,
+			Attempts                 =>  1,
+			MaximumParallelInstances =>  1,
+			Data                     => 
+			{
+				Object   => 'Kernel::System::Email',
+				Function => 'Send',
+				Params   => 
+					{
+						From => $ConfigObject->Get('NotificationSenderEmail'),
+						To    => $NewReceiver,
+						Subject  => "Alert: ConfigItem#$Number - $Name",
+						Charset      => "iso-8859-15",
+						MimeType      => "text/html",
+						Body          => "<b>ConfigItem#$Number has reach its alert time.
+						<br/><br/>Name: $Name<br/>Alert Time: $NewDateTime</b><br/><br/>$ConfigItemURL",
+					},
+			},
+		);
+	}
+	
+	elsif ( $AlertTypeName->{Name} eq "Telegram" )
+	{
+		#validate telegram chat id
+		my $regex = $NewReceiver =~ /^[0-9]*$/;
+
+		if ( !$regex ) 
+		{
+			$Kernel::OM->Get('Kernel::System::Log')->Log(
+				Priority => 'error',
+				Message  => "ConfigItem#$Number: AlertType ($AlertTypeName->{Name}) value not correct: $NewReceiver!",
+			);
+			return;
+		} 
+		
+		my $Webservice = $Kernel::OM->Get('Kernel::System::GenericInterface::Webservice')->WebserviceGet(
+			Name => $Param{Config}->{WebserviceName},
+		);
+	
+		if ( !$Webservice->{ID} )
+		{
+			$Kernel::OM->Get('Kernel::System::Log')->Log(
+				Priority => 'error',
+				Message  => "ConfigItem#$Number. WebserviceName invalid in configuration!",
+			);
+			return;
+		}
+		
+		#create new task
+		my $NewTask = $SchedulerObject->TaskAdd(
+			ExecutionTime            => $NewDateTime,  
+			Type                     => 'AsynchronousExecutor',     
+			Name                     => $TaskName,             
+			Attempts                 => 1,                     
+			MaximumParallelInstances => 1, 
+			Data => {                                           
+				Object   => 'Kernel::GenericInterface::Requester',
+				Function => 'Run',
+				Params   => 
+					{
+						WebserviceID => $Webservice->{ID},
+						Invoker      => $Param{Config}->{Invoker},     	# Name of the Invoker to be used for sending the request
+						Asynchronous => 1,                     			# Optional, 1 or 0, defaults to 0
+						Data         => {                       		# Data payload for the Invoker request (remote web service)
+							ConfigItemID => $Param{Data}->{ConfigItemID},
+						},
+					},
+			},
+		);
+	}
+	
 	else
 	{
-		return 1;
-	}   
-
-    return 1;
+		return;
+	}
+	
+	return 1;
 }
 
 1;
