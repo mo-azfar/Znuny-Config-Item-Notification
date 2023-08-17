@@ -29,7 +29,7 @@
 			Item Name: Email
 			Item Name: Telegram
 			
-	 
+	![general_catalogue](general_catalogue.png) 
 	
 	
 5) Update CMDB class definition with additional field via Admin > Config Items > Class.
