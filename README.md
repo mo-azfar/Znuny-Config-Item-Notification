@@ -35,29 +35,29 @@
 5) Update CMDB class definition with additional field via Admin > Config Items > Class.
 
 		- Key: AlertDateTime
-		Name: Alert Date Time
-		Searchable: 1
-		Input:
+		  Name: Alert Date Time
+		  Searchable: 1
+		  Input:
 			Type: DateTime
 			YearPeriodPast: 0
 			YearPeriodFuture: 2
-		CountMin: 0
-		CountMax: 1
-		CountDefault: 0
-		Sub:
-		- Key: AlertType
+		  CountMin: 0
+		  CountMax: 1
+		  CountDefault: 0
+		  Sub:
+		  - Key: AlertType
 			Name: Alert Type
 			Input:
-			Type: GeneralCatalog
-			Class: ITSM::ConfigItem::AlertType
-			Required: 1
-		- Key: AlertReceiver
+			  Type: GeneralCatalog
+			  Class: ITSM::ConfigItem::AlertType
+			  Required: 1
+		  - Key: AlertReceiver
 			Name: Receiver (Email/Telegram Chat ID)
 			Input:
-			Type: Text
-			Size: 50
-			MaxLength: 100
-			Required: 1
+			  Type: Text
+			  Size: 50
+			  MaxLength: 100
+			  Required: 1
 
 		
 6. These field should be available at your new or edit CI screen.  
