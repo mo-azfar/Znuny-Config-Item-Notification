@@ -106,19 +106,17 @@ sub Run {
 	);
 	
 	my $PV	 		 = $PreVersion->{XMLData}->[1]->{Version}->[1];
-	my $PreDateTime  = $PV->{AlertDateTime}->[1]->{Content};
-	my $PreType      = $PV->{AlertDateTime}->[1]->{AlertType}->[1]->{Content};
-	my $PreReceiver  = $PV->{AlertDateTime}->[1]->{AlertReceiver}->[1]->{Content};
+	my $PreDateTime  = $PV->{AlertDateTime}->[1]->{Content} || 0;
+	my $PreType      = $PV->{AlertDateTime}->[1]->{AlertType}->[1]->{Content} || 0;
+	my $PreReceiver  = $PV->{AlertDateTime}->[1]->{AlertReceiver}->[1]->{Content} || 0;
 		
 	my $Number 		 = $LastVersion->{Number};
 	my $Name 		 = $LastVersion->{Name};
 	my $LV	 		 = $LastVersion->{XMLData}->[1]->{Version}->[1];
-	my $NewDateTime  = $LV->{AlertDateTime}->[1]->{Content};
-	my $NewType      = $LV->{AlertDateTime}->[1]->{AlertType}->[1]->{Content};
-	my $NewReceiver  = $LV->{AlertDateTime}->[1]->{AlertReceiver}->[1]->{Content};
+	my $NewDateTime  = $LV->{AlertDateTime}->[1]->{Content} || 0;
+	my $NewType      = $LV->{AlertDateTime}->[1]->{AlertType}->[1]->{Content} || 0;
+	my $NewReceiver  = $LV->{AlertDateTime}->[1]->{AlertReceiver}->[1]->{Content} || 0;
 	
-	return if !$NewDateTime;
-
 	my $Event = 0;
     if ( $PreDateTime ne $NewDateTime )
 	{
@@ -148,6 +146,7 @@ sub Run {
 	my $TaskID = 0;
 	TASK:
 	
+	#look for existing task for deletion
 	foreach my $Task (@FutureTask)
 	{
 		if ( $Task->{Name} eq $TaskName )
@@ -162,6 +161,26 @@ sub Run {
 			last TASK;
 		}
 	}
+	
+	#return if new date time is empty / not given
+	return if !$NewDateTime;
+
+	my $NowDateTimeObject = $Kernel::OM->Create(
+        'Kernel::System::DateTime'
+    );
+	
+	my $NewDateTimeObject = $Kernel::OM->Create(
+        'Kernel::System::DateTime',
+        ObjectParams => {
+            String   => $NewDateTime,
+        }
+    );
+	
+	#check if the new date time < current datetime
+	my $Result = $NewDateTimeObject->Compare( DateTimeObject => $NowDateTimeObject );
+	
+	#return if new date time < current datetime
+	return if $Result eq -1;
 	
 	my $GeneralCatalogObject = $Kernel::OM->Get('Kernel::System::GeneralCatalog');
 	
