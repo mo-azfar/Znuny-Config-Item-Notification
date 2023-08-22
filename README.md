@@ -79,6 +79,3 @@
 
 	![telegram-alert](telegram-alert.png)
 	![email-alert](email-alert.png)
-	
-	[![Video](https://img.youtube.com/vi/9dKlKJfS7jY/maxresdefault.jpg)](https://www.youtube.com/watch?v=9dKlKJfS7jY)
-	
